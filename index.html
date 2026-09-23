@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo da Coesão Textual - Tudo se Liga!</title>
+<style>
+  :root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --correct: #16a34a;
+    --correct-bg: #dcfce7;
+    --incorrect: #dc2626;
+    --incorrect-bg: #fee2e2;
+    --bg: #eef2ff;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --music: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #ede9fe 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--text);
+  }
+  .app { width: 100%; max-width: 720px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- MUSIC FLOATING BUTTON ---------- */
+  .music-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1000;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--music), #d97706);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px -6px rgba(245, 158, 11, 0.6);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .music-btn:hover {
+    transform: scale(1.08) rotate(5deg);
+    box-shadow: 0 12px 26px -6px rgba(245, 158, 11, 0.8);
+  }
+  .music-btn.playing {
+    animation: pulseMusic 1.5s ease-in-out infinite;
+  }
+  @keyframes pulseMusic {
+    0%, 100% { box-shadow: 0 8px 20px -6px rgba(245, 158, 11, 0.6); }
+    50% { box-shadow: 0 8px 30px -4px rgba(245, 158, 11, 1); }
+  }
+
+  /* ---------- START ---------- */
+  .start-card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 40px 36px;
+    text-align: center;
+    box-shadow: 0 20px 50px -12px rgba(79, 70, 229, 0.25);
+    border: 1px solid rgba(255,255,255,0.8);
+  }
+  .start-emoji { font-size: 56px; margin-bottom: 12px; }
+  .start-card h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    color: var(--text-light);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto 20px;
+  }
+
+  /* ---------- LYRICS ---------- */
+  .btn-secondary {
+    background: #fef3c7;
+    color: #92400e;
+    border: 2px solid #fde68a;
+    padding: 10px 22px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    margin-bottom: 16px;
+  }
+  .btn-secondary:hover {
+    background: #fde68a;
+    transform: translateY(-1px);
+  }
+  .lyrics-box {
+    display: none;
+    text-align: left;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 2px solid #fde68a;
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin: 0 auto 24px;
+    max-height: 320px;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+  }
+  .lyrics-box.open { display: block; }
+  .lyrics-box h3 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #92400e;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .lyrics-content {
+    font-size: 13.5px;
+    line-height: 1.8;
+    color: #78350f;
+    white-space: pre-line;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  .lyrics-content .chorus {
+    background: #fde68a;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    color: #78350f;
+    display: block;
+    margin: 8px 0;
+  }
+  .lyrics-content .verse {
+    display: block;
+    margin-bottom: 8px;
+  }
+  .lyrics-box::-webkit-scrollbar { width: 8px; }
+  .lyrics-box::-webkit-scrollbar-track { background: #fef3c7; border-radius: 99px; }
+  .lyrics-box::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 99px; }
+
+  .rules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 8px 0 28px;
+    flex-wrap: wrap;
+  }
+  .rule {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 22px;
+    font-size: 13px;
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 90px;
+  }
+  .rule span {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  .rule.plus span { color: var(--correct); }
+  .rule.minus span { color: var(--incorrect); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    border: none;
+    padding: 14px 36px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.5);
+    font-family: inherit;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px -6px rgba(79, 70, 229, 0.6);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* ---------- QUIZ ---------- */
+  .quiz-header { margin-bottom: 16px; }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+  #scoreText { color: var(--primary); font-weight: 800; }
+  #scoreText.positive { color: var(--correct); }
+  #scoreText.negative { color: var(--incorrect); }
+  .progress-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 99px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .progress-fill {
+    height: 100%;
+    width: 2%;
+    background: linear-gradient(90deg, var(--primary), #818cf8);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 32px 28px;
+    box-shadow: 0 20px 50px -12px rgba(79, 70, 229, 0.2);
+    border: 1px solid rgba(255,255,255,0.8);
+  }
+
+  .tag {
+    display: inline-block;
+    background: #eef2ff;
+    color: var(--primary);
+    padding: 5px 14px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+  }
+
+  .quote {
+    background: #f8fafc;
+    border-left: 4px solid var(--primary);
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #334155;
+    margin-bottom: 20px;
+  }
+
+  .prompt {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: left;
+    font-size: 14.5px;
+    line-height: 1.5;
+    width: 100%;
+    font-family: inherit;
+    color: var(--text);
+  }
+  .option:hover:not(.disabled) {
+    border-color: var(--primary);
+    background: #f8faff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.3);
+  }
+  .option.disabled { cursor: default; }
+
+  .option .letter {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--text-light);
+    transition: all 0.2s ease;
+  }
+
+  .option.correct { border-color: var(--correct); background: var(--correct-bg); }
+  .option.correct .letter { background: var(--correct); color: #fff; }
+  .option.incorrect { border-color: var(--incorrect); background: var(--incorrect-bg); }
+  .option.incorrect .letter { background: var(--incorrect); color: #fff; }
+
+  .feedback {
+    margin-top: 20px;
+    padding: 18px 20px;
+    border-radius: 14px;
+    display: none;
+    animation: fadeIn 0.3s ease;
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct-fb {
+    background: var(--correct-bg);
+    border-left: 4px solid var(--correct);
+    color: #14532d;
+  }
+  .feedback.incorrect-fb {
+    background: var(--incorrect-bg);
+    border-left: 4px solid var(--incorrect);
+    color: #7f1d1d;
+  }
+  .feedback strong { font-weight: 800; }
+  .feedback p { margin-top: 6px; }
+  .feedback .points {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .feedback.correct-fb .points { background: #bbf7d0; color: #166534; }
+  .feedback.incorrect-fb .points { background: #fecaca; color: #991b1b; }
+
+  .next-btn { display: none; margin-top: 22px; width: 100%; }
+
+  /* ---------- RESULT ---------- */
+  .result-card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 48px 36px;
+    text-align: center;
+    box-shadow: 0 20px 50px -12px rgba(79, 70, 229, 0.25);
+    border: 1px solid rgba(255,255,255,0.8);
+  }
+  .result-emoji { font-size: 72px; margin-bottom: 8px; line-height: 1.1; }
+  .result-card h2 {
+    font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 20px;
+  }
+  .result-score {
+    font-size: 52px; font-weight: 900; color: var(--primary);
+    line-height: 1; letter-spacing: -2px;
+  }
+  .result-score.positive { color: var(--correct); }
+  .result-score.negative { color: var(--incorrect); }
+  .result-label {
+    font-size: 14px; font-weight: 700; color: var(--text-light);
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+  }
+  .result-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 22px 0;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 80px;
+  }
+  .stat-value {
+    font-size: 24px; font-weight: 900; color: var(--primary);
+  }
+  .stat-value.green { color: var(--correct); }
+  .stat-value.red { color: var(--incorrect); }
+  .stat-label {
+    font-size: 11px; font-weight: 700; color: var(--text-light);
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .result-msg {
+    font-size: 15.5px; color: var(--text-light); line-height: 1.6;
+    max-width: 420px; margin: 0 auto 28px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+  .result-msg strong { color: var(--text); }
+
+  .emoji-scale {
+    margin: 0 auto 24px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-light);
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .emoji-scale span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .emoji-scale span b {
+    font-size: 22px;
+  }
+
+  @media (max-width: 500px) {
+    .card { padding: 24px 20px; }
+    .start-card, .result-card { padding: 32px 22px; }
+    .start-card h1 { font-size: 22px; }
+    .quote { font-size: 15.5px; }
+    .option { font-size: 14px; padding: 12px 14px; }
+    .music-btn { width: 44px; height: 44px; font-size: 18px; top: 12px; right: 12px; }
+    .emoji-scale { font-size: 11px; gap: 8px; }
+    .emoji-scale span b { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ ÁUDIO (coloque o arquivo na mesma pasta) ============ -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="Tudo se liga!.mp3" type="audio/mpeg">
+  <source src="Tudo se liga!.wav" type="audio/wav">
+  <source src="Tudo se liga!.ogg" type="audio/ogg">
+  Seu navegador não suporta o elemento de áudio.
+</audio>
+
+<!-- Botão flutuante de música -->
+<button id="musicToggle" class="music-btn" onclick="toggleMusic()" title="Tocar / Pausar música">🔇</button>
+
+<div class="app">
+
+  <!-- ===== START ===== -->
+  <div id="startScreen" class="screen active">
+    <div class="start-card">
+      <div class="start-emoji">📝🎵</div>
+      <h1>Jogo da Coesão Textual</h1>
+      <p class="subtitle">
+        Ouça <strong>"Tudo se liga!"</strong>, leia a letra e teste seus conhecimentos em 50 questões.
+        Acerte e ganhe <strong>+1 ponto</strong>; erre e perca <strong>-1 ponto</strong>.
+      </p>
+
+      <button class="btn-secondary" onclick="toggleLyrics()">
+        📜 Ver letra da música
+      </button>
+
+      <div id="lyricsBox" class="lyrics-box">
+        <h3>🎶 Tudo se liga! 🎶</h3>
+        <div class="lyrics-content">
+<span class="chorus">Tudo se liga, tudo conecta
+Uma palavra puxa a outra e o texto se completa
+Tudo se liga, presta atenção
+Coesão textual é a cola da comunicação!</span>
+
+<span class="verse">Teu texto tá solto, parece peça de Lego
+Cada frase isolada, ninguém entende o enredo
+Aí entra ela, a tal da coesão
+Que costura as ideias e dá direção
+"E", "mas", "porém", "portanto", "porque"
+Conjunções são pontes, tipo Wi-Fi que conecta
+"Ele", "ela", "isso", "aquele"
+Pronomes retomando, ninguém mais se perde</span>
+
+<span class="chorus">Tudo se liga, tudo conecta
+Uma palavra puxa a outra e o texto se completa
+Tudo se liga, presta atenção
+Coesão textual é a cola da comunicação!</span>
+
+<span class="verse">"Além disso", adiciona mais um ponto
+"No entanto", vira o jogo, muda o conto
+"Ou seja", explica, deixa claro
+"Primeiro, depois", organiza o relato
+Sem coesão o texto é só um monte de tijolo
+Com coesão vira casa, vira mundo, vira tudo
+Repetição inteligente, sinônimo também
+É assim que a tua redação vai além</span>
+
+<span class="chorus">Referência, substituição
+Conjunção, advérbio, elipse e repetição
+São os mecanismos da coesão</span>
+
+<span class="chorus">Tudo se liga, tudo conecta
+Uma palavra puxa a outra e o texto se completa
+Tudo se liga, presta atenção
+Coesão textual é a cola da comunicação!</span>
+
+<span class="verse">Escreveu? Conectou!
+Leu? Entendeu!
+Coesão é isso, jovem: tudo se liga!
+Tudo se liga!</span>
+        </div>
+      </div>
+
+      <div class="rules">
+        <div class="rule"><span>50</span>questões</div>
+        <div class="rule plus"><span>+1</span>acerto</div>
+        <div class="rule minus"><span>-1</span>erro</div>
+      </div>
+      <button class="btn-primary" onclick="startGame()">Começar o jogo</button>
+    </div>
+  </div>
+
+  <!-- ===== QUIZ ===== -->
+  <div id="quizScreen" class="screen">
+    <div class="quiz-header">
+      <div class="progress-info">
+        <span id="progressText">Questão 1 de 50</span>
+        <span id="scoreText">Pontos: 0</span>
+      </div>
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tag" id="tag">Repetição</div>
+      <div class="quote" id="questionText"></div>
+      <p class="prompt" id="prompt"></p>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="btn-primary next-btn" id="nextBtn" onclick="nextQuestion()">Próxima →</button>
+    </div>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div id="resultScreen" class="screen">
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji">🏆</div>
+      <h2>Resultado Final</h2>
+      <div class="result-score" id="resultScore">0</div>
+      <div class="result-label">pontos</div>
+
+      <div class="result-stats">
+        <div class="stat">
+          <div class="stat-value green" id="statCorrect">0</div>
+          <div class="stat-label">Acertos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value red" id="statWrong">0</div>
+          <div class="stat-label">Erros</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="statPct">0%</div>
+          <div class="stat-label">Aproveitamento</div>
+        </div>
+      </div>
+
+      <div class="emoji-scale">
+        <span><b>😭</b>até 10</span>
+        <span><b>😠</b>até 15</span>
+        <span><b>😐</b>até 25</span>
+        <span><b>😊</b>até 40</span>
+        <span><b>🥳🎉</b>acima de 40</span>
+      </div>
+
+      <p class="result-msg" id="resultMsg"></p>
+      <button class="btn-primary" onclick="restart()">Jogar novamente</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =====================================================
+   BANCO DE 50 QUESTÕES
+   ===================================================== */
+const questions = [
+  { tipo: "Repetição", texto: "O menino comprou um sorvete. O menino comeu o sorvete. O menino ficou feliz.",
+    pergunta: "Qual reescrita resolve a repetição excessiva e mantém o sentido?",
+    opcoes: ["O menino comprou um sorvete. Ele comeu o sorvete. O menino ficou feliz.",
+             "O menino comprou um sorvete, comeu-o e ficou feliz.",
+             "O menino comprou um sorvete, portanto o menino comeu o sorvete e o menino ficou feliz.",
+             "O menino comprou um sorvete porque o menino comeu o sorvete e o menino ficou feliz."],
+    correta: 1,
+    justificativa: "A repetição de “o menino” e “o sorvete” torna o texto cansativo. A reescrita correta usa elipse (omissão do sujeito) e pronome oblíquo (“comeu-o”), deixando o texto coeso e fluido." },
+  { tipo: "Conectivo", texto: "Ele não estudou, portanto foi aprovado.",
+    pergunta: "Qual é a reescrita adequada?",
+    opcoes: ["Ele não estudou, porque foi aprovado.", "Ele não estudou, portanto foi aprovado.",
+             "Ele não estudou, mas foi aprovado.", "Ele não estudou, pois foi aprovado."],
+    correta: 2,
+    justificativa: "“Portanto” indica conclusão lógica. Como não estudar e ser aprovado é um resultado inesperado, o conectivo adequado é “mas” (adversativo)." },
+  { tipo: "Ambiguidade", texto: "Pedro disse a Carlos que ele havia ganhado o prêmio.",
+    pergunta: "Qual reescrita desfaz a ambiguidade?",
+    opcoes: ["Pedro disse a Carlos que ele havia ganhado o prêmio.",
+             "Pedro disse a Carlos, porque ele havia ganhado o prêmio.",
+             "Pedro disse a Carlos que eles haviam ganhado o prêmio.",
+             "Pedro disse a Carlos que Pedro havia ganhado o prêmio."],
+    correta: 3,
+    justificativa: "O pronome “ele” é ambíguo: pode retomar “Pedro” ou “Carlos”. Substituí-lo pelo nome (“Pedro”) elimina a ambiguidade." },
+  { tipo: "Uso de “onde”", texto: "Eu li o livro onde o autor fala sobre amor.",
+    pergunta: "Qual reescrita corrige o uso inadequado de “onde”?",
+    opcoes: ["Eu li o livro onde o autor fala sobre amor.",
+             "Eu li o livro em que o autor fala sobre amor.",
+             "Eu li o livro, onde o autor fala sobre amor.",
+             "Eu li o livro aonde o autor fala sobre amor."],
+    correta: 1,
+    justificativa: "“Onde” só deve ser usado para lugar físico. “Livro” não é lugar. O correto é usar “em que” (ou “no qual”)." },
+  { tipo: "Repetição", texto: "O cachorro late. O cachorro corre. O cachorro brinca.",
+    pergunta: "Qual reescrita melhora a coesão?",
+    opcoes: ["O cachorro late. O cachorro corre. O cachorro brinca.",
+             "O cachorro late, portanto o cachorro corre e o cachorro brinca.",
+             "O cachorro late porque o cachorro corre e o cachorro brinca.",
+             "O cachorro late, corre e brinca."],
+    correta: 3,
+    justificativa: "A repetição desnecessária de “o cachorro” quebra a fluidez. Com elipse do sujeito e coordenação aditiva, o texto fica coeso." },
+  { tipo: "Conectivo", texto: "Gosto de praia, porém gosto de montanha também.",
+    pergunta: "Qual reescrita é mais adequada?",
+    opcoes: ["Gosto de praia, porém gosto de montanha também.",
+             "Gosto de praia, porque gosto de montanha também.",
+             "Gosto de praia e gosto de montanha também.",
+             "Gosto de praia, portanto gosto de montanha também."],
+    correta: 2,
+    justificativa: "“Porém” marca oposição, mas gostar de praia e de montanha são ideias compatíveis. O conectivo adequado é aditivo: “e”." },
+  { tipo: "Ambiguidade", texto: "Comprei um livro e um caderno. Ele é muito interessante.",
+    pergunta: "Qual reescrita resolve a ambiguidade?",
+    opcoes: ["Comprei um livro e um caderno. Ele é muito interessante.",
+             "Comprei um livro e um caderno. O livro é muito interessante.",
+             "Comprei um livro e um caderno, porque ele é muito interessante.",
+             "Comprei um livro e um caderno, mas ele é muito interessante."],
+    correta: 1,
+    justificativa: "O pronome “ele” pode retomar “livro” ou “caderno”. Usar o nome “O livro” elimina a ambiguidade." },
+  { tipo: "Conectivo", texto: "Ele é inteligente, mas estuda muito.",
+    pergunta: "Qual reescrita é mais adequada?",
+    opcoes: ["Ele é inteligente, mas estuda muito.", "Ele é inteligente, porque estuda muito.",
+             "Ele é inteligente, portanto estuda muito.", "Ele é inteligente e estuda muito."],
+    correta: 3,
+    justificativa: "“Mas” indica oposição, porém ser inteligente e estudar muito são ideias complementares. O conectivo aditivo “e” é o adequado." },
+  { tipo: "Uso de “onde/aonde”", texto: "Onde você vai?",
+    pergunta: "Qual é a forma correta?",
+    opcoes: ["Onde você vai?", "Aonde você está?", "Aonde você vai?", "Onde você vai, porque..."],
+    correta: 2,
+    justificativa: "Com verbos de movimento (ir, chegar), usa-se “aonde” (a + onde). “Onde” indica permanência." },
+  { tipo: "Repetição", texto: "Eu gosto de música. Eu gosto de dançar. Eu gosto de cantar.",
+    pergunta: "Qual reescrita melhora a coesão?",
+    opcoes: ["Eu gosto de música, de dançar e de cantar.",
+             "Eu gosto de música. Eu gosto de dançar. Eu gosto de cantar.",
+             "Eu gosto de música, portanto eu gosto de dançar e eu gosto de cantar.",
+             "Eu gosto de música porque eu gosto de dançar e eu gosto de cantar."],
+    correta: 0,
+    justificativa: "A repetição de “eu gosto” é desnecessária. Com elipse do verbo e coordenação, o texto fica mais coeso e fluido." },
+
+  { tipo: "Referenciação", texto: "Maria chegou cedo. A professora elogiou-a.",
+    pergunta: "O que o pronome “a” retoma?",
+    opcoes: ["A professora.", "Maria.", "A chegada.", "Nenhum termo, é expletivo."],
+    correta: 1,
+    justificativa: "O pronome oblíquo “a” em “elogiou-a” retoma anaforicamente “Maria”. Isso garante a coesão referencial por pronominalização." },
+  { tipo: "Coesão lexical", texto: "O carro é veloz. O veículo atingiu 200 km/h.",
+    pergunta: "Que recurso de coesão foi utilizado?",
+    opcoes: ["Antônimo.", "Repetição literal.", "Hipônimo/hiperônimo (carro → veículo).", "Elipse."],
+    correta: 2,
+    justificativa: "“Carro” é hipônimo de “veículo” (hiperônimo). A substituição lexical evita repetição e mantém a coesão." },
+  { tipo: "Conectivo", texto: "Estudou muito, ____ foi aprovado.",
+    pergunta: "Qual conectivo completa corretamente indicando conclusão?",
+    opcoes: ["porém", "portanto", "embora", "todavia"],
+    correta: 1,
+    justificativa: "“Portanto” é um conectivo conclusivo. Estudar muito leva logicamente à aprovação." },
+  { tipo: "Conectivo", texto: "____ estivesse chovendo, saímos.",
+    pergunta: "Qual conectivo indica concessão?",
+    opcoes: ["Porque", "Portanto", "Embora", "Assim"],
+    correta: 2,
+    justificativa: "“Embora” é concessivo: apresenta um fato que se opõe, mas não impede a ação principal." },
+  { tipo: "Referenciação", texto: "Comprei uma casa. Ela é grande e iluminada.",
+    pergunta: "O pronome “ela” faz referência a:",
+    opcoes: ["Uma pessoa mencionada antes.", "A “casa”, por anáfora.", "Ao falante.", "Ao interlocutor."],
+    correta: 1,
+    justificativa: "“Ela” retoma anaforicamente “uma casa”. A concordância feminina confirma a referência." },
+  { tipo: "Coesão lexical", texto: "Ele é um bom profissional. O médico salvou muitas vidas.",
+    pergunta: "Que tipo de coesão foi usada?",
+    opcoes: ["Antonímia.", "Sinonímia / especificação lexical.", "Elipse.", "Repetição."],
+    correta: 1,
+    justificativa: "“Bom profissional” é retomado por “o médico”, num processo de especificação lexical, evitando repetição." },
+  { tipo: "Conectivo", texto: "Não gosto de acordar cedo, ____ preciso trabalhar.",
+    pergunta: "Qual conectivo expressa contraste?",
+    opcoes: ["porque", "portanto", "mas", "assim"],
+    correta: 2,
+    justificativa: "“Mas” é adversativo, indicando contraste entre “não gostar de acordar cedo” e “precisar trabalhar”." },
+  { tipo: "Repetição", texto: "O time venceu o jogo. O time comemorou muito.",
+    pergunta: "Qual reescrita evita a repetição de “o time”?",
+    opcoes: ["O time venceu o jogo. O time comemorou muito.",
+             "O time venceu o jogo e comemorou muito.",
+             "O time venceu o jogo, portanto o time comemorou muito.",
+             "O time venceu o jogo porque o time comemorou muito."],
+    correta: 1,
+    justificativa: "A elipse do sujeito (“o time venceu o jogo e [o time] comemorou muito”) evita repetição e mantém a coesão." },
+  { tipo: "Referenciação", texto: "Encontrei Ana e Beatriz. Esta me disse que aquela estava doente.",
+    pergunta: "Quem estava doente?",
+    opcoes: ["Beatriz (a mais próxima).", "Ana (a mais distante).", "Ambas.", "Não é possível saber."],
+    correta: 1,
+    justificativa: "“Esta” refere-se ao termo mais próximo (Beatriz); “aquela”, ao mais distante (Ana). Logo, Ana estava doente." },
+  { tipo: "Conectivo", texto: "Choveu muito, ____ as ruas ficaram alagadas.",
+    pergunta: "Qual conectivo expressa consequência?",
+    opcoes: ["embora", "porém", "de modo que", "ainda que"],
+    correta: 2,
+    justificativa: "“De modo que” é consecutivo: expressa o resultado/consequência de “choveu muito”." },
+
+  { tipo: "Ambiguidade", texto: "O policial avistou o ladrão quando ele saía do banco.",
+    pergunta: "Quem saía do banco?",
+    opcoes: ["O policial, com certeza.", "O ladrão, com certeza.", "Ambos, simultaneamente.", "É ambíguo: pode ser o policial ou o ladrão."],
+    correta: 3,
+    justificativa: "O pronome “ele” é ambíguo, podendo retomar “o policial” ou “o ladrão”. Para desfazer a ambiguidade, seria necessário repetir o nome." },
+  { tipo: "Conectivo", texto: "Ele foi ao mercado, ____ comprar frutas.",
+    pergunta: "Qual conectivo indica finalidade?",
+    opcoes: ["porém", "para", "porque", "logo"],
+    correta: 1,
+    justificativa: "“Para” é preposição que introduz ideia de finalidade: ele foi ao mercado com o objetivo de comprar frutas." },
+  { tipo: "Coesão lexical", texto: "Ele comprou um veículo. O automóvel é zero quilômetro.",
+    pergunta: "Que mecanismo coesivo foi usado?",
+    opcoes: ["Repetição literal.", "Sinonímia (veículo/automóvel).", "Antonímia.", "Elipse."],
+    correta: 1,
+    justificativa: "“Automóvel” é sinônimo contextual de “veículo”, evitando a repetição e mantendo a coesão lexical." },
+  { tipo: "Referenciação", texto: "Disseram-me que você mentiu. Isso me deixou triste.",
+    pergunta: "O pronome demonstrativo “isso” retoma:",
+    opcoes: ["A palavra “você”.", "Toda a oração anterior (“que você mentiu”).", "A palavra “triste”.", "A palavra “disseram”."],
+    correta: 1,
+    justificativa: "“Isso” é um elemento de coesão referencial que retoma todo o conteúdo da oração anterior." },
+  { tipo: "Conectivo", texto: "Não só estudou, ____ também trabalhou.",
+    pergunta: "Qual conectivo completa a correlação aditiva?",
+    opcoes: ["porém", "mas", "como", "e"],
+    correta: 1,
+    justificativa: "A correlação “não só... mas também” é aditiva. Liga duas ações que se somam." },
+  { tipo: "Repetição", texto: "A empresa cresceu. A empresa contratou mais funcionários. A empresa abriu filiais.",
+    pergunta: "Qual reescrita melhora a coesão?",
+    opcoes: ["A empresa cresceu, contratou mais funcionários e abriu filiais.",
+             "A empresa cresceu. A empresa contratou mais funcionários. A empresa abriu filiais.",
+             "A empresa cresceu, portanto a empresa contratou mais funcionários e a empresa abriu filiais.",
+             "A empresa cresceu porque a empresa contratou mais funcionários e a empresa abriu filiais."],
+    correta: 0,
+    justificativa: "A repetição de “a empresa” é desnecessária. Com elipse do sujeito e coordenação aditiva, o texto fica coeso." },
+  { tipo: "Referenciação", texto: "Meu irmão estuda medicina. Ele quer ser cardiologista.",
+    pergunta: "O pronome “ele” retoma:",
+    opcoes: ["Medicina.", "Cardiologista.", "Meu irmão.", "Nenhum termo."],
+    correta: 2,
+    justificativa: "“Ele” retoma anaforicamente “meu irmão”, evitando a repetição e garantindo a coesão referencial." },
+  { tipo: "Conectivo", texto: "Fez sol o dia inteiro; ____, à noite choveu.",
+    pergunta: "Qual conectivo indica oposição?",
+    opcoes: ["por isso", "no entanto", "portanto", "assim"],
+    correta: 1,
+    justificativa: "“No entanto” é um conectivo adversativo: contrapõe “fez sol” a “choveu à noite”." },
+  { tipo: "Ambiguidade", texto: "O professor falou com o aluno sobre seu projeto.",
+    pergunta: "De quem é o projeto?",
+    opcoes: ["Do professor, com certeza.", "Do aluno, com certeza.", "É ambíguo: pode ser do professor ou do aluno.", "De um terceiro não mencionado."],
+    correta: 2,
+    justificativa: "O possessivo “seu” gera ambiguidade: pode referir-se ao professor ou ao aluno." },
+  { tipo: "Coesão lexical", texto: "A floresta é bela. O bioma abriga milhares de espécies.",
+    pergunta: "Que mecanismo coesivo aparece?",
+    opcoes: ["Antonímia.", "Hipônimo/hiperônimo (floresta → bioma).", "Repetição.", "Elipse."],
+    correta: 1,
+    justificativa: "“Floresta” é um tipo de “bioma”, configurando relação de hipônimo/hiperônimo." },
+
+  { tipo: "Conectivo", texto: "____ chova amanhã, o evento será cancelado.",
+    pergunta: "Qual conectivo indica condição?",
+    opcoes: ["Embora", "Caso", "Porque", "Portanto"],
+    correta: 1,
+    justificativa: "“Caso” introduz uma condição: somente se chover, o evento será cancelado." },
+  { tipo: "Referenciação", texto: "Davi e Golias se enfrentaram. Este era gigante; aquele, pequeno.",
+    pergunta: "Quem era gigante?",
+    opcoes: ["Davi (primeiro citado).", "Golias (segundo citado).", "Ambos.", "Nenhum."],
+    correta: 1,
+    justificativa: "“Este” retoma o termo mais próximo (Golias); “aquele”, o mais distante (Davi). Logo, Golias era o gigante." },
+  { tipo: "Conectivo", texto: "Ele era pobre, ____ feliz.",
+    pergunta: "Qual conectivo expressa oposição?",
+    opcoes: ["portanto", "assim", "mas", "porque"],
+    correta: 2,
+    justificativa: "“Mas” marca oposição entre “ser pobre” e “ser feliz”, ideias que tradicionalmente se contrastam." },
+  { tipo: "Repetição", texto: "O médico atendeu o paciente. O médico receitou o remédio. O médico explicou a posologia.",
+    pergunta: "Qual reescrita evita repetição mantendo coesão?",
+    opcoes: ["O médico atendeu o paciente, receitou o remédio e explicou a posologia.",
+             "O médico atendeu o paciente. O médico receitou o remédio. O médico explicou a posologia.",
+             "O médico atendeu o paciente, portanto o médico receitou o remédio e o médico explicou a posologia.",
+             "O médico atendeu o paciente porque o médico receitou o remédio e o médico explicou a posologia."],
+    correta: 0,
+    justificativa: "A elipse do sujeito e a coordenação aditiva tornam o texto coeso e eliminam a repetição desnecessária." },
+  { tipo: "Coesão lexical", texto: "Comprei um computador. O aparelho é muito rápido.",
+    pergunta: "O termo “aparelho” retoma “computador” por:",
+    opcoes: ["Antonímia.", "Hiperônimo (termo mais geral).", "Hipônimo.", "Homônimo."],
+    correta: 1,
+    justificativa: "“Aparelho” é hiperônimo de “computador”: um termo mais geral que engloba o específico." },
+  { tipo: "Referenciação", texto: "Estudei muito para a prova. Isso me deixou exausto.",
+    pergunta: "O termo “isso” retoma:",
+    opcoes: ["Apenas “prova”.", "Toda a oração “Estudei muito para a prova”.", "A palavra “exausto”.", "A palavra “muito”."],
+    correta: 1,
+    justificativa: "“Isso” é um mecanismo de coesão referencial que retoma o conteúdo de toda a oração anterior." },
+  { tipo: "Conectivo", texto: "Não fui à festa ____ estava doente.",
+    pergunta: "Qual conectivo indica causa?",
+    opcoes: ["mas", "porque", "portanto", "para"],
+    correta: 1,
+    justificativa: "“Porque” introduz causa: a razão de não ter ido à festa foi a doença." },
+  { tipo: "Ambiguidade", texto: "Vi o filme que me indicaram e gostei dele.",
+    pergunta: "A frase apresenta ambiguidade?",
+    opcoes: ["Sim, o pronome “dele” é ambíguo.", "Não, “dele” retoma claramente “o filme”.", "Sim, “que me indicaram” é ambíguo.", "Sim, “vi” é ambíguo."],
+    correta: 1,
+    justificativa: "Não há ambiguidade: “dele” retoma “o filme”, o único antecedente compatível." },
+  { tipo: "Conectivo", texto: "Saiu cedo, ____ chegou atrasado.",
+    pergunta: "Qual conectivo expressa contraste?",
+    opcoes: ["porque", "portanto", "contudo", "assim"],
+    correta: 2,
+    justificativa: "“Contudo” é adversativo: contrapõe “sair cedo” a “chegar atrasado”, fato inesperado." },
+  { tipo: "Repetição", texto: "A aluna respondeu. A aluna acertou. A aluna sorriu.",
+    pergunta: "Qual reescrita melhora a coesão?",
+    opcoes: ["A aluna respondeu. A aluna acertou. A aluna sorriu.",
+             "A aluna respondeu, acertou e sorriu.",
+             "A aluna respondeu, portanto a aluna acertou e a aluna sorriu.",
+             "A aluna respondeu porque a aluna acertou e a aluna sorriu."],
+    correta: 1,
+    justificativa: "A elipse do sujeito e a coordenação aditiva eliminam a repetição de “a aluna”, mantendo a coesão." },
+
+  { tipo: "Referenciação", texto: "O Brasil é um país continental. Este possui grandes riquezas naturais.",
+    pergunta: "O pronome “este” retoma:",
+    opcoes: ["País continental.", "Brasil.", "Riquezas naturais.", "Nenhum termo."],
+    correta: 1,
+    justificativa: "“Este” retoma anaforicamente “O Brasil”, o antecedente. É um caso de coesão referencial demonstrativa." },
+  { tipo: "Conectivo", texto: "Ele não só estuda como também trabalha.",
+    pergunta: "Qual a relação expressa pela correlação?",
+    opcoes: ["Oposição.", "Adição.", "Conclusão.", "Concessão."],
+    correta: 1,
+    justificativa: "“Não só... como também” é uma correlação aditiva: soma duas ações ou informações." },
+  { tipo: "Coesão lexical", texto: "Ele ganhou um cachorro. O animal é muito dócil.",
+    pergunta: "O termo “animal” retoma “cachorro” por:",
+    opcoes: ["Sinonímia exata.", "Antonímia.", "Hiperônimo (animal engloba cachorro).", "Hipônimo."],
+    correta: 2,
+    justificativa: "“Animal” é hiperônimo de “cachorro”: um termo mais geral que inclui o específico." },
+  { tipo: "Ambiguidade", texto: "Falei com o diretor e o coordenador na sua sala.",
+    pergunta: "De quem é a sala?",
+    opcoes: ["Do diretor, com certeza.", "Do coordenador, com certeza.", "É ambíguo.", "Da pessoa com quem se fala."],
+    correta: 2,
+    justificativa: "“Sua” pode referir-se ao diretor, ao coordenador ou ao interlocutor. A ambiguidade só se desfaz com reformulação." },
+  { tipo: "Conectivo", texto: "Ele é teimoso, ____ seja inteligente.",
+    pergunta: "Qual conectivo introduz concessão?",
+    opcoes: ["porque", "portanto", "embora", "assim"],
+    correta: 2,
+    justificativa: "“Embora” é concessivo: reconhece uma qualidade (“ser inteligente”) que não anula o defeito (“ser teimoso”)." },
+  { tipo: "Referenciação", texto: "Compramos pão, queijo e presunto. Estes dois últimos estavam frescos.",
+    pergunta: "O que estava fresco?",
+    opcoes: ["Apenas o pão.", "O queijo e o presunto.", "Apenas o queijo.", "Todos os itens."],
+    correta: 1,
+    justificativa: "“Estes dois últimos” retoma anaforicamente os dois últimos itens da enumeração: “queijo” e “presunto”." },
+  { tipo: "Conectivo", texto: "Estudou tanto ____ passou em primeiro lugar.",
+    pergunta: "Qual conectivo expressa consequência?",
+    opcoes: ["que", "mas", "embora", "porém"],
+    correta: 0,
+    justificativa: "“Tanto... que” é correlação consecutiva: expressa a consequência de “estudar tanto”." },
+  { tipo: "Repetição", texto: "O professor explicou. O professor perguntou. O professor corrigiu.",
+    pergunta: "Qual reescrita evita a repetição?",
+    opcoes: ["O professor explicou, perguntou e corrigiu.",
+             "O professor explicou. O professor perguntou. O professor corrigiu.",
+             "O professor explicou, portanto o professor perguntou e o professor corrigiu.",
+             "O professor explicou porque o professor perguntou e o professor corrigiu."],
+    correta: 0,
+    justificativa: "A elipse do sujeito e a coordenação aditiva eliminam a repetição e mantêm a coesão." },
+  { tipo: "Coesão lexical", texto: "Ele plantou uma rosa. A flor cresceu rápido.",
+    pergunta: "O termo “flor” retoma “rosa” por:",
+    opcoes: ["Antonímia.", "Hipônimo.", "Hiperônimo (flor engloba rosa).", "Repetição."],
+    correta: 2,
+    justificativa: "“Flor” é hiperônimo de “rosa”: termo mais geral que inclui o específico." },
+  { tipo: "Conectivo", texto: "Ele foi embora, ____ não se despediu.",
+    pergunta: "Qual conectivo expressa adição?",
+    opcoes: ["mas", "e", "porém", "contudo"],
+    correta: 1,
+    justificativa: "“E” é conectivo aditivo: soma duas informações, sem contraste." }
+];
+
+/* =====================================================
+   ESTADO DO JOGO
+   ===================================================== */
+let currentQuestion = 0;
+let score = 0;          // pontos líquidos (+1 acerto, -1 erro)
+let correctCount = 0;   // acertos brutos
+let wrongCount = 0;     // erros brutos
+let answered = false;
+
+/* =====================================================
+   ÁUDIO
+   ===================================================== */
+const music = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicToggle');
+
+function toggleMusic() {
+  if (music.paused) {
+    music.play().then(() => {
+      musicBtn.textContent = '🔊';
+      musicBtn.classList.add('playing');
+    }).catch(err => {
+      console.warn('Não foi possível tocar o áudio:', err);
+      musicBtn.textContent = '⚠️';
+    });
+  } else {
+    music.pause();
+    musicBtn.textContent = '🔇';
+    musicBtn.classList.remove('playing');
+  }
+}
+
+// Estado inicial do botão
+musicBtn.textContent = '🔇';
+
+/* =====================================================
+   LETRA
+   ===================================================== */
+function toggleLyrics() {
+  const box = document.getElementById('lyricsBox');
+  box.classList.toggle('open');
+}
+
+/* =====================================================
+   JOGO
+   ===================================================== */
+function startGame() {
+  currentQuestion = 0;
+  score = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  answered = false;
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('quizScreen').classList.add('active');
+  renderQuestion();
+}
+
+function updateScoreDisplay() {
+  const el = document.getElementById('scoreText');
+  el.textContent = `Pontos: ${score}`;
+  el.classList.remove('positive', 'negative');
+  if (score > 0) el.classList.add('positive');
+  else if (score < 0) el.classList.add('negative');
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[currentQuestion];
+
+  document.getElementById('tag').textContent = q.tipo;
+  document.getElementById('questionText').textContent = q.texto;
+  document.getElementById('prompt').textContent = q.pergunta;
+
+  document.getElementById('progressText').textContent =
+    `Questão ${currentQuestion + 1} de ${questions.length}`;
+  updateScoreDisplay();
+  document.getElementById('progressFill').style.width =
+    `${((currentQuestion + 1) / questions.length) * 100}%`;
+
+  const optionsContainer = document.getElementById('options');
+  optionsContainer.innerHTML = '';
+  q.opcoes.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.innerHTML = `<span class="letter">${'ABCD'[i]}</span><span>${opt}</span>`;
+    btn.addEventListener('click', () => selectOption(i));
+    optionsContainer.appendChild(btn);
+  });
+
+  const feedback = document.getElementById('feedback');
+  feedback.className = 'feedback';
+  feedback.innerHTML = '';
+
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.style.display = 'none';
+  nextBtn.textContent = currentQuestion === questions.length - 1
+    ? 'Ver resultado'
+    : 'Próxima →';
+}
+
+function selectOption(index) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[currentQuestion];
+  const options = document.querySelectorAll('.option');
+
+  options.forEach((opt, i) => {
+    opt.classList.add('disabled');
+    if (i === q.correta) opt.classList.add('correct');
+    else if (i === index) opt.classList.add('incorrect');
+  });
+
+  const feedback = document.getElementById('feedback');
+  const isCorrect = index === q.correta;
+
+  if (isCorrect) {
+    score += 1;
+    correctCount++;
+    feedback.className = 'feedback show correct-fb';
+    feedback.innerHTML =
+      `<strong>✓ Acertou!</strong><p>${q.justificativa}</p>` +
+      `<span class="points">+1 ponto • Total: ${score}</span>`;
+  } else {
+    score -= 1;
+    wrongCount++;
+    feedback.className = 'feedback show incorrect-fb';
+    feedback.innerHTML =
+      `<strong>✗ Errou.</strong> A resposta correta é a letra <strong>${'ABCD'[q.correta]}</strong>.` +
+      `<p>${q.justificativa}</p>` +
+      `<span class="points">-1 ponto • Total: ${score}</span>`;
+  }
+
+  updateScoreDisplay();
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById('quizScreen').classList.remove('active');
+  document.getElementById('resultScreen').classList.add('active');
+
+  const total = questions.length;
+  const pct = Math.round((correctCount / total) * 100);
+
+  /* ---- EMOJI E MENSAGEM POR FAIXA DE PONTOS ---- */
+  let emoji, msg;
+  if (score <= 10) {
+    emoji = '😭';
+    msg = '<strong>Poxa...</strong> Precisa estudar mais coesão textual! Ouça a música <em>"Tudo se liga!"</em> de novo e revise os conectivos.';
+  } else if (score <= 15) {
+    emoji = '😠';
+    msg = '<strong>Quase lá!</strong> Você ainda erra muitos conectivos. Revise as conjunções e a referenciação.';
+  } else if (score <= 25) {
+    emoji = '😐';
+    msg = '<strong>Está no caminho.</strong> Você já entende o básico, mas precisa dominar os mecanismos de coesão.';
+  } else if (score <= 40) {
+    emoji = '😊';
+    msg = '<strong>Muito bom!</strong> Você domina boa parte da coesão textual. Continue praticando para gabaritar!';
+  } else {
+    emoji = '🥳';
+    msg = '<strong>Uau, sensacional!</strong> 🎉 Você é fera em coesão textual! "Tudo se liga" mesmo!';
+  }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  const scoreEl = document.getElementById('resultScore');
+  scoreEl.textContent = score;
+  scoreEl.classList.remove('positive', 'negative');
+  if (score > 0) scoreEl.classList.add('positive');
+  else if (score < 0) scoreEl.classList.add('negative');
+
+  document.getElementById('statCorrect').textContent = correctCount;
+  document.getElementById('statWrong').textContent = wrongCount;
+  document.getElementById('statPct').textContent = pct + '%';
+  document.getElementById('resultMsg').innerHTML = msg;
+}
+
+function restart() {
+  currentQuestion = 0;
+  score = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  answered = false;
+  document.getElementById('resultScreen').classList.remove('active');
+  document.getElementById('startScreen').classList.add('active');
+  // Fecha a letra ao voltar
+  document.getElementById('lyricsBox').classList.remove('open');
+}
+</script>
+</body>
+</html>

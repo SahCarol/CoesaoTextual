@@ -18,6 +18,8 @@
     --text-light: #64748b;
     --border: #e2e8f0;
     --music: #f59e0b;
+    --tip: #0ea5e9;
+    --tip-dark: #0284c7;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -40,36 +42,54 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ---------- MUSIC FLOATING BUTTON ---------- */
-  .music-btn {
+  /* ---------- FLOATING BUTTONS ---------- */
+  .float-btn {
     position: fixed;
-    top: 16px;
-    right: 16px;
     z-index: 1000;
     width: 50px;
     height: 50px;
     border-radius: 50%;
     border: none;
-    background: linear-gradient(135deg, var(--music), #d97706);
     color: #fff;
     font-size: 22px;
     cursor: pointer;
-    box-shadow: 0 8px 20px -6px rgba(245, 158, 11, 0.6);
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
   }
+  .music-btn {
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, var(--music), #d97706);
+    box-shadow: 0 8px 20px -6px rgba(245, 158, 11, 0.6);
+  }
   .music-btn:hover {
     transform: scale(1.08) rotate(5deg);
     box-shadow: 0 12px 26px -6px rgba(245, 158, 11, 0.8);
   }
-  .music-btn.playing {
-    animation: pulseMusic 1.5s ease-in-out infinite;
-  }
+  .music-btn.playing { animation: pulseMusic 1.5s ease-in-out infinite; }
   @keyframes pulseMusic {
     0%, 100% { box-shadow: 0 8px 20px -6px rgba(245, 158, 11, 0.6); }
     50% { box-shadow: 0 8px 30px -4px rgba(245, 158, 11, 1); }
+  }
+
+  .tip-btn {
+    top: 16px;
+    left: 16px;
+    background: linear-gradient(135deg, var(--tip), var(--tip-dark));
+    box-shadow: 0 8px 20px -6px rgba(14, 165, 233, 0.6);
+    width: auto;
+    padding: 0 18px;
+    height: 50px;
+    border-radius: 25px;
+    font-size: 15px;
+    font-weight: 700;
+    gap: 8px;
+  }
+  .tip-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px -6px rgba(14, 165, 233, 0.8);
   }
 
   /* ---------- START ---------- */
@@ -97,7 +117,6 @@
     margin: 0 auto 20px;
   }
 
-  /* ---------- LYRICS ---------- */
   .btn-secondary {
     background: #fef3c7;
     color: #92400e;
@@ -111,10 +130,8 @@
     font-family: inherit;
     margin-bottom: 16px;
   }
-  .btn-secondary:hover {
-    background: #fde68a;
-    transform: translateY(-1px);
-  }
+  .btn-secondary:hover { background: #fde68a; transform: translateY(-1px); }
+
   .lyrics-box {
     display: none;
     text-align: left;
@@ -140,7 +157,6 @@
     line-height: 1.8;
     color: #78350f;
     white-space: pre-line;
-    font-family: 'Segoe UI', system-ui, sans-serif;
   }
   .lyrics-content .chorus {
     background: #fde68a;
@@ -151,10 +167,7 @@
     display: block;
     margin: 8px 0;
   }
-  .lyrics-content .verse {
-    display: block;
-    margin-bottom: 8px;
-  }
+  .lyrics-content .verse { display: block; margin-bottom: 8px; }
   .lyrics-box::-webkit-scrollbar { width: 8px; }
   .lyrics-box::-webkit-scrollbar-track { background: #fef3c7; border-radius: 99px; }
   .lyrics-box::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 99px; }
@@ -206,39 +219,133 @@
   }
   .btn-primary:active { transform: translateY(0); }
 
-  /* ---------- QUIZ ---------- */
-  .quiz-header { margin-bottom: 16px; }
-  .progress-info {
+  /* ---------- QUIZ HEADER ---------- */
+  .quiz-header {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.2);
+    border: 1px solid rgba(255,255,255,0.8);
+  }
+  .header-top {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+  .progress-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .progress-text {
     font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .progress-sub {
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-light);
-    margin-bottom: 8px;
-    padding: 0 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  #scoreText { color: var(--primary); font-weight: 800; }
-  #scoreText.positive { color: var(--correct); }
-  #scoreText.negative { color: var(--incorrect); }
+
+  /* ---------- EMOJI DINÂMICO DURANTE O JOGO ---------- */
+  .live-emoji {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 6px 14px 6px 10px;
+    transition: all 0.3s ease;
+  }
+  .live-emoji .emoji-face {
+    font-size: 30px;
+    line-height: 1;
+    transition: transform 0.3s ease;
+  }
+  .live-emoji.bounce .emoji-face {
+    animation: bounceEmoji 0.5s ease;
+  }
+  @keyframes bounceEmoji {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.35) rotate(-8deg); }
+    70%  { transform: scale(0.95) rotate(4deg); }
+    100% { transform: scale(1); }
+  }
+  .live-emoji .emoji-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .live-emoji .emoji-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .live-emoji .emoji-score {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+  }
+  .live-emoji .emoji-score.positive { color: var(--correct); }
+  .live-emoji .emoji-score.negative { color: var(--incorrect); }
+
+  /* ---------- BARRA DE PROGRESSO ---------- */
   .progress-bar {
-    height: 8px;
-    background: rgba(255,255,255,0.7);
+    height: 10px;
+    background: #e2e8f0;
     border-radius: 99px;
     overflow: hidden;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+    position: relative;
   }
   .progress-fill {
     height: 100%;
     width: 2%;
     background: linear-gradient(90deg, var(--primary), #818cf8);
     border-radius: 99px;
-    transition: width 0.4s ease;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 40px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6));
+    border-radius: 99px;
+    animation: shine 2s ease-in-out infinite;
+  }
+  @keyframes shine {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.9; }
+  }
+  .progress-pct {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    font-size: 9px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    letter-spacing: 0.5px;
+    pointer-events: none;
   }
 
+  /* ---------- CARD ---------- */
   .card {
     background: var(--card);
     border-radius: 24px;
-    padding: 32px 28px;
+    padding: 28px 26px;
     box-shadow: 0 20px 50px -12px rgba(79, 70, 229, 0.2);
     border: 1px solid rgba(255,255,255,0.8);
   }
@@ -396,9 +503,7 @@
     gap: 2px;
     min-width: 80px;
   }
-  .stat-value {
-    font-size: 24px; font-weight: 900; color: var(--primary);
-  }
+  .stat-value { font-size: 24px; font-weight: 900; color: var(--primary); }
   .stat-value.green { color: var(--correct); }
   .stat-value.red { color: var(--incorrect); }
   .stat-label {
@@ -434,25 +539,152 @@
     align-items: center;
     gap: 2px;
   }
-  .emoji-scale span b {
-    font-size: 22px;
+  .emoji-scale span b { font-size: 22px; }
+  .emoji-scale span.active {
+    background: #eef2ff;
+    border-radius: 10px;
+    padding: 4px 8px;
+    color: var(--primary);
+    font-weight: 800;
   }
 
+  /* ---------- MODAL DICA ---------- */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    padding: 20px;
+    overflow-y: auto;
+    animation: fadeIn 0.25s ease;
+  }
+  .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+  .modal {
+    background: #fff;
+    border-radius: 22px;
+    max-width: 640px;
+    width: 100%;
+    margin: auto;
+    padding: 28px 26px;
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,0.4);
+    animation: modalIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #e0f2fe;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+  }
+  .modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--tip-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-close {
+    background: #f1f5f9;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+  .modal-close:hover { background: #e2e8f0; color: var(--text); transform: rotate(90deg); }
+
+  .tip-section { margin-bottom: 20px; }
+  .tip-section h4 {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--tip-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tip-item {
+    background: #f0f9ff;
+    border-left: 4px solid var(--tip);
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #0c4a6e;
+  }
+  .tip-item strong {
+    color: #0369a1;
+    font-weight: 800;
+  }
+  .tip-item em {
+    color: #64748b;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .tip-hacks {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border: 2px dashed #10b981;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-top: 6px;
+  }
+  .tip-hacks h4 { color: #047857; }
+  .tip-hacks ol {
+    margin-left: 20px;
+    color: #065f46;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+  .tip-hacks ol li { margin-bottom: 4px; }
+  .tip-hacks ol li strong { color: #047857; }
+
   @media (max-width: 500px) {
-    .card { padding: 24px 20px; }
+    .card { padding: 22px 18px; }
     .start-card, .result-card { padding: 32px 22px; }
     .start-card h1 { font-size: 22px; }
     .quote { font-size: 15.5px; }
     .option { font-size: 14px; padding: 12px 14px; }
-    .music-btn { width: 44px; height: 44px; font-size: 18px; top: 12px; right: 12px; }
-    .emoji-scale { font-size: 11px; gap: 8px; }
+    .float-btn { width: 44px; height: 44px; font-size: 18px; }
+    .music-btn { top: 12px; right: 12px; }
+    .tip-btn { top: 12px; left: 12px; height: 44px; padding: 0 14px; font-size: 13px; }
+    .emoji-scale { font-size: 10px; gap: 6px; }
     .emoji-scale span b { font-size: 18px; }
+    .live-emoji { padding: 5px 10px 5px 8px; }
+    .live-emoji .emoji-face { font-size: 24px; }
+    .live-emoji .emoji-score { font-size: 14px; }
+    .modal { padding: 22px 18px; }
+    .modal-title { font-size: 17px; }
   }
 </style>
 </head>
 <body>
 
-<!-- ============ ÁUDIO (coloque o arquivo na mesma pasta) ============ -->
+<!-- ============ ÁUDIO ============ -->
 <audio id="bgMusic" loop preload="auto">
   <source src="Tudo se liga!.mp3" type="audio/mpeg">
   <source src="Tudo se liga!.wav" type="audio/wav">
@@ -461,7 +693,10 @@
 </audio>
 
 <!-- Botão flutuante de música -->
-<button id="musicToggle" class="music-btn" onclick="toggleMusic()" title="Tocar / Pausar música">🔇</button>
+<button id="musicToggle" class="float-btn music-btn" onclick="toggleMusic()" title="Tocar / Pausar música">🔇</button>
+
+<!-- Botão flutuante de dica -->
+<button class="float-btn tip-btn" onclick="openTip()" title="Ver dicas de coesão">💡 Dica</button>
 
 <div class="app">
 
@@ -538,14 +773,30 @@ Tudo se liga!</span>
   <!-- ===== QUIZ ===== -->
   <div id="quizScreen" class="screen">
     <div class="quiz-header">
-      <div class="progress-info">
-        <span id="progressText">Questão 1 de 50</span>
-        <span id="scoreText">Pontos: 0</span>
+      <div class="header-top">
+        <div class="progress-info">
+          <span class="progress-text" id="progressText">Questão 1 de 50</span>
+          <span class="progress-sub" id="progressSub">Iniciando…</span>
+        </div>
+
+        <!-- EMOJI DINÂMICO DURANTE O JOGO -->
+        <div class="live-emoji" id="liveEmoji">
+          <div class="emoji-face" id="emojiFace">😐</div>
+          <div class="emoji-info">
+            <span class="emoji-label">Pontos</span>
+            <span class="emoji-score" id="liveScore">0</span>
+          </div>
+        </div>
       </div>
+
+      <!-- BARRA DE PROGRESSO -->
       <div class="progress-bar">
-        <div id="progressFill" class="progress-fill"></div>
+        <div class="progress-fill" id="progressFill">
+          <span class="progress-pct" id="progressPct">2%</span>
+        </div>
       </div>
     </div>
+
     <div class="card">
       <div class="tag" id="tag">Repetição</div>
       <div class="quote" id="questionText"></div>
@@ -579,12 +830,12 @@ Tudo se liga!</span>
         </div>
       </div>
 
-      <div class="emoji-scale">
-        <span><b>😭</b>até 10</span>
-        <span><b>😠</b>até 15</span>
-        <span><b>😐</b>até 25</span>
-        <span><b>😊</b>até 40</span>
-        <span><b>🥳🎉</b>acima de 40</span>
+      <div class="emoji-scale" id="emojiScale">
+        <span data-range="low"><b>😭</b>até 10</span>
+        <span data-range="mid1"><b>😠</b>até 15</span>
+        <span data-range="mid2"><b>😐</b>até 25</span>
+        <span data-range="high"><b>😊</b>até 40</span>
+        <span data-range="max"><b>🥳🎉</b>acima de 40</span>
       </div>
 
       <p class="result-msg" id="resultMsg"></p>
@@ -592,6 +843,75 @@ Tudo se liga!</span>
     </div>
   </div>
 
+</div>
+
+<!-- ============ MODAL DICA ============ -->
+<div class="modal-overlay" id="tipModal" onclick="if(event.target===this) closeTip()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💡 Ajudinha</div>
+      <button class="modal-close" onclick="closeTip()">✕</button>
+    </div>
+
+    <div class="tip-section">
+      <h4>🔗 Conectivos essenciais</h4>
+
+      <div class="tip-item">
+        <strong>E:</strong> junta ideias. <em>Pão e leite.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Mas:</strong> ideia contrária. <em>Queria brincar, mas choveu.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Porque:</strong> explica o motivo. <em>Não fui porque choveu.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Então:</strong> conclusão. <em>Choveu, então fiquei em casa.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Onde:</strong> lugar fixo. <em>A casa onde moro é azul.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Aonde:</strong> movimento (a + onde). <em>Aonde você vai?</em> (você vai a algum lugar)
+      </div>
+      <div class="tip-item">
+        <strong>Com:</strong> companhia, instrumento ou modo. <em>Fui com minha mãe. / Cortei com tesoura.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Ao:</strong> é a junção de a + o. Usado para tempo, lugar ou movimento. <em>Vou ao mercado. / Ao anoitecer, cheguei.</em>
+      </div>
+    </div>
+
+    <div class="tip-section">
+      <h4>✏️ Vírgula: é uma pausa. Usa para:</h4>
+      <div class="tip-item">
+        <strong>Listas:</strong> <em>Comprei pão, leite e queijo.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Explicação:</strong> <em>Meu gato, que é branco, fugiu.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Chamar alguém:</strong> <em>Maria, venha aqui.</em>
+      </div>
+      <div class="tip-item">
+        <strong>Antes de "mas":</strong> <em>Queria ir, mas não deu.</em>
+      </div>
+      <div class="tip-item" style="border-left-color:#dc2626; background:#fef2f2; color:#7f1d1d;">
+        <strong style="color:#b91c1c;">❌ Não use entre sujeito e verbo:</strong>
+        <em style="color:#991b1b;">"João, correu" está errado.</em>
+      </div>
+    </div>
+
+    <div class="tip-hacks">
+      <h4>🚀 Hacks para entender coesão</h4>
+      <ol>
+        <li><strong>Leia em voz alta.</strong> Se parecer frases soltas, falta cola.</li>
+        <li><strong>Troque palavras repetidas</strong> por <em>ele, ela, isso, que</em>.</li>
+        <li><strong>Use sinônimos</strong> para não repetir sempre a mesma palavra.</li>
+        <li><strong>Pergunte:</strong> "Quem? Onde? Quando? Por quê?" e escolha a palavra-cola certa.</li>
+      </ol>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -672,7 +992,6 @@ const questions = [
              "Eu gosto de música porque eu gosto de dançar e eu gosto de cantar."],
     correta: 0,
     justificativa: "A repetição de “eu gosto” é desnecessária. Com elipse do verbo e coordenação, o texto fica mais coeso e fluido." },
-
   { tipo: "Referenciação", texto: "Maria chegou cedo. A professora elogiou-a.",
     pergunta: "O que o pronome “a” retoma?",
     opcoes: ["A professora.", "Maria.", "A chegada.", "Nenhum termo, é expletivo."],
@@ -726,7 +1045,6 @@ const questions = [
     opcoes: ["embora", "porém", "de modo que", "ainda que"],
     correta: 2,
     justificativa: "“De modo que” é consecutivo: expressa o resultado/consequência de “choveu muito”." },
-
   { tipo: "Ambiguidade", texto: "O policial avistou o ladrão quando ele saía do banco.",
     pergunta: "Quem saía do banco?",
     opcoes: ["O policial, com certeza.", "O ladrão, com certeza.", "Ambos, simultaneamente.", "É ambíguo: pode ser o policial ou o ladrão."],
@@ -780,7 +1098,6 @@ const questions = [
     opcoes: ["Antonímia.", "Hipônimo/hiperônimo (floresta → bioma).", "Repetição.", "Elipse."],
     correta: 1,
     justificativa: "“Floresta” é um tipo de “bioma”, configurando relação de hipônimo/hiperônimo." },
-
   { tipo: "Conectivo", texto: "____ chova amanhã, o evento será cancelado.",
     pergunta: "Qual conectivo indica condição?",
     opcoes: ["Embora", "Caso", "Porque", "Portanto"],
@@ -837,7 +1154,6 @@ const questions = [
              "A aluna respondeu porque a aluna acertou e a aluna sorriu."],
     correta: 1,
     justificativa: "A elipse do sujeito e a coordenação aditiva eliminam a repetição de “a aluna”, mantendo a coesão." },
-
   { tipo: "Referenciação", texto: "O Brasil é um país continental. Este possui grandes riquezas naturais.",
     pergunta: "O pronome “este” retoma:",
     opcoes: ["País continental.", "Brasil.", "Riquezas naturais.", "Nenhum termo."],
@@ -897,10 +1213,21 @@ const questions = [
    ESTADO DO JOGO
    ===================================================== */
 let currentQuestion = 0;
-let score = 0;          // pontos líquidos (+1 acerto, -1 erro)
-let correctCount = 0;   // acertos brutos
-let wrongCount = 0;     // erros brutos
+let score = 0;
+let correctCount = 0;
+let wrongCount = 0;
 let answered = false;
+
+/* =====================================================
+   EMOJIS POR FAIXA DE PONTOS
+   ===================================================== */
+function getEmojiForScore(s) {
+  if (s <= 10)  return { emoji: '😭', key: 'low',  msg: 'Precisa estudar mais! Ouça "Tudo se liga!" de novo.' };
+  if (s <= 15)  return { emoji: '😠', key: 'mid1', msg: 'Quase lá! Revise os conectivos.' };
+  if (s <= 25)  return { emoji: '😐', key: 'mid2', msg: 'Está no caminho. Continue praticando!' };
+  if (s <= 40)  return { emoji: '😊', key: 'high', msg: 'Muito bom! Você domina boa parte da coesão.' };
+  return         { emoji: '🥳', key: 'max',  msg: 'Sensacional! Você é fera em coesão textual! 🎉' };
+}
 
 /* =====================================================
    ÁUDIO
@@ -923,17 +1250,29 @@ function toggleMusic() {
     musicBtn.classList.remove('playing');
   }
 }
-
-// Estado inicial do botão
 musicBtn.textContent = '🔇';
 
 /* =====================================================
    LETRA
    ===================================================== */
 function toggleLyrics() {
-  const box = document.getElementById('lyricsBox');
-  box.classList.toggle('open');
+  document.getElementById('lyricsBox').classList.toggle('open');
 }
+
+/* =====================================================
+   MODAL DICA
+   ===================================================== */
+function openTip() {
+  document.getElementById('tipModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTip() {
+  document.getElementById('tipModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeTip();
+});
 
 /* =====================================================
    JOGO
@@ -949,12 +1288,24 @@ function startGame() {
   renderQuestion();
 }
 
-function updateScoreDisplay() {
-  const el = document.getElementById('scoreText');
-  el.textContent = `Pontos: ${score}`;
-  el.classList.remove('positive', 'negative');
-  if (score > 0) el.classList.add('positive');
-  else if (score < 0) el.classList.add('negative');
+function updateLiveEmoji(bounce = false) {
+  const info = getEmojiForScore(score);
+  const faceEl = document.getElementById('emojiFace');
+  const scoreEl = document.getElementById('liveScore');
+  const liveBox = document.getElementById('liveEmoji');
+
+  faceEl.textContent = info.emoji;
+  scoreEl.textContent = score;
+
+  scoreEl.classList.remove('positive', 'negative');
+  if (score > 0) scoreEl.classList.add('positive');
+  else if (score < 0) scoreEl.classList.add('negative');
+
+  if (bounce) {
+    liveBox.classList.remove('bounce');
+    void liveBox.offsetWidth;
+    liveBox.classList.add('bounce');
+  }
 }
 
 function renderQuestion() {
@@ -965,11 +1316,14 @@ function renderQuestion() {
   document.getElementById('questionText').textContent = q.texto;
   document.getElementById('prompt').textContent = q.pergunta;
 
-  document.getElementById('progressText').textContent =
-    `Questão ${currentQuestion + 1} de ${questions.length}`;
-  updateScoreDisplay();
-  document.getElementById('progressFill').style.width =
-    `${((currentQuestion + 1) / questions.length) * 100}%`;
+  const total = questions.length;
+  const pct = Math.round(((currentQuestion + 1) / total) * 100);
+  document.getElementById('progressText').textContent = `Questão ${currentQuestion + 1} de ${total}`;
+  document.getElementById('progressSub').textContent = `${pct}% concluído`;
+  document.getElementById('progressFill').style.width = `${pct}%`;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+
+  updateLiveEmoji(false);
 
   const optionsContainer = document.getElementById('options');
   optionsContainer.innerHTML = '';
@@ -987,9 +1341,7 @@ function renderQuestion() {
 
   const nextBtn = document.getElementById('nextBtn');
   nextBtn.style.display = 'none';
-  nextBtn.textContent = currentQuestion === questions.length - 1
-    ? 'Ver resultado'
-    : 'Próxima →';
+  nextBtn.textContent = currentQuestion === total - 1 ? 'Ver resultado' : 'Próxima →';
 }
 
 function selectOption(index) {
@@ -1025,7 +1377,7 @@ function selectOption(index) {
       `<span class="points">-1 ponto • Total: ${score}</span>`;
   }
 
-  updateScoreDisplay();
+  updateLiveEmoji(true);
   document.getElementById('nextBtn').style.display = 'inline-block';
 }
 
@@ -1045,26 +1397,10 @@ function showResult() {
   const total = questions.length;
   const pct = Math.round((correctCount / total) * 100);
 
-  /* ---- EMOJI E MENSAGEM POR FAIXA DE PONTOS ---- */
-  let emoji, msg;
-  if (score <= 10) {
-    emoji = '😭';
-    msg = '<strong>Poxa...</strong> Precisa estudar mais coesão textual! Ouça a música <em>"Tudo se liga!"</em> de novo e revise os conectivos.';
-  } else if (score <= 15) {
-    emoji = '😠';
-    msg = '<strong>Quase lá!</strong> Você ainda erra muitos conectivos. Revise as conjunções e a referenciação.';
-  } else if (score <= 25) {
-    emoji = '😐';
-    msg = '<strong>Está no caminho.</strong> Você já entende o básico, mas precisa dominar os mecanismos de coesão.';
-  } else if (score <= 40) {
-    emoji = '😊';
-    msg = '<strong>Muito bom!</strong> Você domina boa parte da coesão textual. Continue praticando para gabaritar!';
-  } else {
-    emoji = '🥳';
-    msg = '<strong>Uau, sensacional!</strong> 🎉 Você é fera em coesão textual! "Tudo se liga" mesmo!';
-  }
+  const info = getEmojiForScore(score);
 
-  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultEmoji').textContent = info.emoji;
+
   const scoreEl = document.getElementById('resultScore');
   scoreEl.textContent = score;
   scoreEl.classList.remove('positive', 'negative');
@@ -1074,7 +1410,20 @@ function showResult() {
   document.getElementById('statCorrect').textContent = correctCount;
   document.getElementById('statWrong').textContent = wrongCount;
   document.getElementById('statPct').textContent = pct + '%';
-  document.getElementById('resultMsg').innerHTML = msg;
+
+  let prefix;
+  if (info.key === 'low')  prefix = '<strong>Poxa...</strong> ';
+  else if (info.key === 'mid1') prefix = '<strong>Quase lá!</strong> ';
+  else if (info.key === 'mid2') prefix = '<strong>Está no caminho.</strong> ';
+  else if (info.key === 'high') prefix = '<strong>Muito bom!</strong> ';
+  else prefix = '<strong>Uau, sensacional!</strong> ';
+
+  document.getElementById('resultMsg').innerHTML = prefix + info.msg;
+
+  // Destacar faixa ativa no emoji-scale
+  document.querySelectorAll('#emojiScale span').forEach(sp => {
+    sp.classList.toggle('active', sp.dataset.range === info.key);
+  });
 }
 
 function restart() {
@@ -1085,7 +1434,6 @@ function restart() {
   answered = false;
   document.getElementById('resultScreen').classList.remove('active');
   document.getElementById('startScreen').classList.add('active');
-  // Fecha a letra ao voltar
   document.getElementById('lyricsBox').classList.remove('open');
 }
 </script>
